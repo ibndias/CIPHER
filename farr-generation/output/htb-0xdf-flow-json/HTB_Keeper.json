@@ -1,0 +1,86 @@
+[
+    {
+        "Findings": "The target IP is 10.10.11.227,",
+        "Action": "running nmap with command `nmap -p- --min-rate 10000 10.10.11.227`,",
+        "Reasoning": "to discover open ports on the target,",
+        "Result": "found SSH (22) and HTTP (80) ports open."
+    },
+    {
+        "Findings": "The HTTP service is nginx 1.18.0,",
+        "Action": "running nmap with command `nmap -p 22,80 -sCV 10.10.11.227`,",
+        "Reasoning": "to gather more information about the services running on the open ports,",
+        "Result": "confirmed the HTTP service and identified the OS as likely Ubuntu 22.04."
+    },
+    {
+        "Findings": "The HTTP response from `",
+        "Action": "adding `keeper.htb` and `tickets.keeper.htb` to `/etc/hosts`,",
+        "Reasoning": "to access the ticketing system directly,",
+        "Result": "able to access the ticketing system at `tickets.keeper.htb`."
+    },
+    {
+        "Findings": "The ticketing system is an instance of Request Tracker (RT) version 4.4.4,",
+        "Action": "searching for default credentials for RT,",
+        "Reasoning": "to gain access to the system,",
+        "Result": "discovered that the default credentials ("
+    },
+    {
+        "Findings": "Logged into the RT dashboard,",
+        "Action": "exploring the available tickets,",
+        "Reasoning": "to find useful information,",
+        "Result": "found a ticket related to Keepass and the user lnorgaard."
+    },
+    {
+        "Findings": "The lnorgaard user has a crash dump for the root user,",
+        "Action": "logging in as lnorgaard via SSH using the password `Welcome2023!`,",
+        "Reasoning": "to gain access to the user account,",
+        "Result": "successfully logged in and retrieved `user.txt`."
+    },
+    {
+        "Findings": "The lnorgaard home directory contains a zip file `RT30000.zip`,",
+        "Action": "using `scp` to transfer the zip file to the local machine,",
+        "Reasoning": "to analyze the contents of the zip file,",
+        "Result": "downloaded the zip file containing `KeePassDumpFull.dmp` and `passcodes.kdbx`."
+    },
+    {
+        "Findings": "The `KeePassDumpFull.dmp` file is a memory dump,",
+        "Action": "researching CVE-2022-32784 vulnerability in Keepass,",
+        "Reasoning": "to exploit the vulnerability and recover the master password,",
+        "Result": "identified that the master password can be recovered from the memory dump."
+    },
+    {
+        "Findings": "Attempting to recover the password using `strings` and `grep`,",
+        "Action": "running `strings -e S KeePassDumpFull.dmp | grep -a $(printf \"%b\" \"\\\\xCF\\\\x25\\\\xCF\\\\x25\")`,",
+        "Reasoning": "to find potential characters of the master password,",
+        "Result": "identified potential characters but not the complete password."
+    },
+    {
+        "Findings": "Cloning the `keepass-password-dumper` repository on a Windows VM,",
+        "Action": "running the exploit with `dotnet run [dump]`,",
+        "Reasoning": "to automate the password recovery process,",
+        "Result": "received a list of password candidates."
+    },
+    {
+        "Findings": "The exploit provides a list of possible characters for the master password,",
+        "Action": "searching for the string minus the first two characters,",
+        "Reasoning": "to find a known phrase that fits the pattern,",
+        "Result": "identified a likely master password."
+    },
+    {
+        "Findings": "The master password is needed to access `passcodes.kdbx`,",
+        "Action": "using `kpcli` to open the database with the recovered password,",
+        "Reasoning": "to retrieve stored credentials,",
+        "Result": "successfully accessed the KeePass database."
+    },
+    {
+        "Findings": "The KeePass database contains SSH credentials for the root user,",
+        "Action": "converting the PuTTY SSH key to OpenSSH format using `puttygen`,",
+        "Reasoning": "to use the key for SSH access on Linux,",
+        "Result": "converted the key successfully."
+    },
+    {
+        "Findings": "The converted SSH key is ready for use,",
+        "Action": "SSH into the target as root using the converted key,",
+        "Reasoning": "to gain root access to the system,",
+        "Result": "successfully logged in as root and retrieved `root.txt`."
+    }
+]

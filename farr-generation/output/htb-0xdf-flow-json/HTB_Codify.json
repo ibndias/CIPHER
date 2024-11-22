@@ -1,0 +1,146 @@
+[
+    {
+        "Findings": "The target IP is 10.10.11.239,",
+        "Action": "running nmap with command `nmap -p- --min-rate 10000 10.10.11.239`,",
+        "Reasoning": "to discover open ports on the target,",
+        "Result": "found ports 22 (SSH), 80 (HTTP), and 3000 (HTTP) open."
+    },
+    {
+        "Findings": "The service on port 80 is Apache 2.4.52,",
+        "Action": "running nmap with command `nmap -p 22,80,3000 -sCV 10.10.11.239`,",
+        "Reasoning": "to gather more detailed information about the services running on the open ports,",
+        "Result": "confirmed Apache and Node.js Express framework running on ports 80 and 3000 respectively."
+    },
+    {
+        "Findings": "The site on port 80 redirects to `codify.htb`,",
+        "Action": "adding `10.10.11.239 codify.htb` to `/etc/hosts`,",
+        "Reasoning": "to access the site using its domain name instead of the IP address,",
+        "Result": "able to access the site at `"
+    },
+    {
+        "Findings": "The website is an online JavaScript sandbox using vm2,",
+        "Action": "exploring the site and its features,",
+        "Reasoning": "to understand the limitations and capabilities of the sandbox,",
+        "Result": "identified that certain modules like `child_process` and `fs` are blocked."
+    },
+    {
+        "Findings": "The version of vm2 is 3.9.16,",
+        "Action": "searching for vulnerabilities in vm2,",
+        "Reasoning": "to find potential exploits that could allow code execution,",
+        "Result": "discovered multiple CVEs affecting vm2, including CVE-2023-37903, CVE-2023-37466, CVE-2023-32314, and CVE-2023-30547."
+    },
+    {
+        "Findings": "CVE-2023-32314 allows escaping the sandbox using the Proxy object,",
+        "Action": "testing the POC for CVE-2023-32314,",
+        "Reasoning": "to see if it successfully executes arbitrary code,",
+        "Result": "executed `echo hacked` successfully."
+    },
+    {
+        "Findings": "CVE-2023-30547 uses an exception to execute code,",
+        "Action": "modifying the POC to run `id` instead of `touch pwned`,",
+        "Reasoning": "to verify code execution and see the output,",
+        "Result": "confirmed execution by seeing the output of `id`."
+    },
+    {
+        "Findings": "CVE-2023-37903 uses a custom inspect function,",
+        "Action": "testing the POC for CVE-2023-37903,",
+        "Reasoning": "to check if it can execute code,",
+        "Result": "confirmed execution by sending a ping command and capturing ICMP packets."
+    },
+    {
+        "Findings": "The reverse shell payload is ready,",
+        "Action": "starting `nc` to listen for incoming connections,",
+        "Reasoning": "to establish a reverse shell connection,",
+        "Result": "received a connection and obtained a shell as the svc user."
+    },
+    {
+        "Findings": "The home directory for svc is mostly empty,",
+        "Action": "enumerating files in `/home/svc`,",
+        "Reasoning": "to check for any useful files or configurations,",
+        "Result": "found a `pwned` file and some configuration files."
+    },
+    {
+        "Findings": "The home directory for joshua is inaccessible,",
+        "Action": "attempting to list contents of `/home/joshua`,",
+        "Reasoning": "to check if there are any files of interest,",
+        "Result": "received a permission denied error."
+    },
+    {
+        "Findings": "The `/var/www/editor` directory contains the source code for the web application,",
+        "Action": "listing files in `/var/www/editor`,",
+        "Reasoning": "to analyze the web application for vulnerabilities,",
+        "Result": "found `index.js`, `node_modules`, and other files related to the application."
+    },
+    {
+        "Findings": "The contact application is another Express app using SQLite,",
+        "Action": "analyzing the source code of the contact application,",
+        "Reasoning": "to identify potential vulnerabilities or misconfigurations,",
+        "Result": "discovered routes and functionality related to user authentication and ticket submission."
+    },
+    {
+        "Findings": "The application uses SQLite as its database and has two",
+        "Action": "queried the `users` table to find existing users,",
+        "Reasoning": "to check for valid usernames and passwords,",
+        "Result": "found a single user `joshua` with a bcrypt hashed password."
+    },
+    {
+        "Findings": "The password hash for user `joshua` is stored in the database,",
+        "Action": "saved the hash to a file and attempted to crack it using hashcat,",
+        "Reasoning": "to retrieve the plaintext password for user `joshua`,",
+        "Result": "successfully cracked the password to \"spongebob1\"."
+    },
+    {
+        "Findings": "The password \"spongebob1\" works for user `joshua`,",
+        "Action": "used `su` to switch to user `joshua`,",
+        "Reasoning": "to gain access to the user's shell and files,",
+        "Result": "successfully switched to `joshua`'s shell."
+    },
+    {
+        "Findings": "User `joshua` has access to a file `user.txt`,",
+        "Action": "read the contents of `user.txt`,",
+        "Reasoning": "to find any flags or sensitive information,",
+        "Result": "retrieved the contents of `user.txt`."
+    },
+    {
+        "Findings": "User `joshua` can run a backup script as root using `sudo`,",
+        "Action": "checked the allowed commands for `joshua` using `sudo -l`,",
+        "Reasoning": "to identify potential privilege escalation paths,",
+        "Result": "found that `joshua` can run `/opt/scripts/mysql-backup.sh` as root."
+    },
+    {
+        "Findings": "The backup script reads MySQL credentials from `/root/.creds`,",
+        "Action": "analyzed the script for vulnerabilities,",
+        "Reasoning": "to find ways to exploit the script for privilege escalation,",
+        "Result": "identified that the password confirmation check is vulnerable to bypass and that the password is exposed in the process list."
+    },
+    {
+        "Findings": "The password confirmation check in the script does not use quotes,",
+        "Action": "attempted to bypass the password check by entering \"*\",",
+        "Reasoning": "to see if the script would accept it as a valid password,",
+        "Result": "successfully bypassed the password check and confirmed the password."
+    },
+    {
+        "Findings": "The script runs MySQL commands with the password visible in the process list,",
+        "Action": "used PSpy to monitor processes while running the backup script,",
+        "Reasoning": "to capture the MySQL root password,",
+        "Result": "successfully captured the root password from the process list."
+    },
+    {
+        "Findings": "The root password is visible in the process list when the script runs,",
+        "Action": "wrote a Python script to brute force the root password using wildcard inputs,",
+        "Reasoning": "to systematically discover the root password by exploiting the vulnerable password check,",
+        "Result": "successfully retrieved the root password \"kljh12k3jhaskjh12kjh3\"."
+    },
+    {
+        "Findings": "The root password was successfully retrieved,",
+        "Action": "used `su` to switch to the root user,",
+        "Reasoning": "to gain full administrative access to the system,",
+        "Result": "successfully switched to the root shell."
+    },
+    {
+        "Findings": "The root user has access to `root.txt`,",
+        "Action": "read the contents of `root.txt`,",
+        "Reasoning": "to find the final flag,",
+        "Result": "retrieved the contents of `root.txt`."
+    }
+]

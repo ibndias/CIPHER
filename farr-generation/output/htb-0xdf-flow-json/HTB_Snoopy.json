@@ -1,0 +1,338 @@
+[
+    {
+        "Findings": "The target IP is 10.10.11.212,",
+        "Action": "running nmap with command `nmap -p- --min-rate 10000 10.10.11.212`,",
+        "Reasoning": "to discover open ports on the target,",
+        "Result": "found ports 22 (SSH), 53 (DNS), and 80 (HTTP) open."
+    },
+    {
+        "Findings": "The open ports include SSH (22), DNS (53), and HTTP (80),",
+        "Action": "running nmap with command `nmap -p 22,53,80 -sCV 10.10.11.212`,",
+        "Reasoning": "to gather more detailed information about the services running on the open ports,",
+        "Result": "identified OpenSSH 8.9p1, ISC BIND 9.18.12, and nginx 1.18.0."
+    },
+    {
+        "Findings": "The HTTP service is running nginx and serves a security firm website,",
+        "Action": "visiting the website at `",
+        "Reasoning": "to analyze the content and structure of the website for potential vulnerabilities,",
+        "Result": "observed links to download files and an email address in the footer."
+    },
+    {
+        "Findings": "The website has a `/download` endpoint that returns zip files,",
+        "Action": "downloading files from `/download` and `/download?file=announcement.pdf`,",
+        "Reasoning": "to inspect the contents of the zip files for sensitive information,",
+        "Result": "identified two different zip files with varying contents."
+    },
+    {
+        "Findings": "The zip file from `/download` contains a PDF and an MP4 video,",
+        "Action": "extracting the contents of the zip file,",
+        "Reasoning": "to check for any sensitive information or credentials,",
+        "Result": "found the product manager's email in the video."
+    },
+    {
+        "Findings": "The \"Contact\" page has a form that returns an error message,",
+        "Action": "submitting the form with data,",
+        "Reasoning": "to test for potential vulnerabilities in the form handling,",
+        "Result": "received an error message indicating the mail server is offline."
+    },
+    {
+        "Findings": "The website uses PHP and has pages ending in `.html`,",
+        "Action": "running `feroxbuster` to brute force directories,",
+        "Reasoning": "to discover hidden files or directories that may contain vulnerabilities,",
+        "Result": "found several accessible pages including `/download.php`."
+    },
+    {
+        "Findings": "The subdomain `mm.snoopy.htb` returns a Mattermost page,",
+        "Action": "visiting `",
+        "Reasoning": "to explore if there are any vulnerabilities in the Mattermost application,",
+        "Result": "reached a login page with options for password recovery."
+    },
+    {
+        "Findings": "The DNS service allows zone transfers,",
+        "Action": "performing a zone transfer with `dig axfr snoopy.htb @10.10.11.212`,",
+        "Reasoning": "to gather information about subdomains and IP addresses associated with the target,",
+        "Result": "obtained a list of subdomains including `mattermost.snoopy.htb` and `postgres.snoopy.htb`."
+    },
+    {
+        "Findings": "The `/download?file=` endpoint is potentially vulnerable to LFI,",
+        "Action": "testing for LFI using `ffuf` with a wordlist,",
+        "Reasoning": "to check if local files can be accessed through the URL,",
+        "Result": "confirmed the presence of a vulnerability by retrieving the `/etc/passwd` file."
+    },
+    {
+        "Findings": "The `/etc/passwd` file reveals user accounts,",
+        "Action": "enumerating users from the file,",
+        "Reasoning": "to identify potential targets for further exploitation,",
+        "Result": "found users including `cbrown`, `sbrown`, `lpelt`, `cschultz`, and `vgray`."
+    },
+    {
+        "Findings": "The application allows access to `/proc/self`,",
+        "Action": "attempting to read files from `/proc/self/cwd`,",
+        "Reasoning": "to explore the current working directory of the web server,",
+        "Result": "successfully retrieved the contents of `index.html` and `download.php`."
+    },
+    {
+        "Findings": "The `download.php` file contains code for handling file downloads,",
+        "Action": "analyzing the PHP code,",
+        "Reasoning": "to understand how file handling is implemented and identify potential exploits,",
+        "Result": "confirmed that the application uses a zip archive to handle file downloads, which can be exploited for LFI."
+    },
+    {
+        "Findings": "The zip file returned from the LFI contains sensitive files,",
+        "Action": "writing a Python script to automate file retrieval,",
+        "Reasoning": "to streamline the process of extracting files from the server,",
+        "Result": "successfully retrieved and extracted files from the server using the script."
+    },
+    {
+        "Findings": "The target has a web application that allows file downloads,",
+        "Action": "Wrote a Python script to enumerate files and download them,",
+        "Reasoning": "To exploit the file download functionality for local file inclusion,",
+        "Result": "Successfully retrieved the `/etc/passwd` file and other files from the server."
+    },
+    {
+        "Findings": "The `/etc/passwd` file shows six users with shells set,",
+        "Action": "Filtered the output to find users with shell access,",
+        "Reasoning": "To identify potential targets for further exploitation,",
+        "Result": "Identified"
+    },
+    {
+        "Findings": "The web application has a `/download.php` endpoint that can be accessed,",
+        "Action": "Attempted to access various files through the endpoint,",
+        "Reasoning": "To check for file inclusion vulnerabilities,",
+        "Result": "Successfully retrieved the contents of `/proc/self/cwd/download.php`."
+    },
+    {
+        "Findings": "The `download.php` script allows for file inclusion and creates a zip file of the requested files,",
+        "Action": "Analyzed the PHP code to understand its functionality,",
+        "Reasoning": "To determine how to exploit the file inclusion for sensitive files,",
+        "Result": "Confirmed that it uses `file_get_contents` and does not execute files."
+    },
+    {
+        "Findings": "The Bind DNS server is running and configured to allow zone transfers,",
+        "Action": "Analyzed the Bind configuration files for potential exploits,",
+        "Reasoning": "To find ways to manipulate DNS records,",
+        "Result": "Discovered the `rndc-key` for TSIG updates."
+    },
+    {
+        "Findings": "The `rndc-key` allows for dynamic DNS updates,",
+        "Action": "Created a DNS update script to add a new A record,",
+        "Reasoning": "To redirect email traffic to my server,",
+        "Result": "Successfully updated the DNS to point `mail.snoopy.htb` to my IP."
+    },
+    {
+        "Findings": "The DNS update is temporary and resets every two minutes,",
+        "Action": "Set up a Python SMTP server to capture emails,",
+        "Reasoning": "To intercept the password reset email from Mattermost,",
+        "Result": "Captured the email containing the password reset link."
+    },
+    {
+        "Findings": "The password reset link contains a token that needs to be decoded,",
+        "Action": "Decoded the token to use it for resetting the password,",
+        "Reasoning": "To gain access to the Mattermost account,",
+        "Result": "Successfully reset the password and logged into Mattermost."
+    },
+    {
+        "Findings": "Joined Mattermost channels and observed conversations,",
+        "Action": "Monitored discussions for useful information,",
+        "Reasoning": "To gather intelligence on the target's operations,",
+        "Result": "Discovered discussions about server provisioning and antivirus usage."
+    },
+    {
+        "Findings": "The Mattermost application supports slash commands,",
+        "Action": "Explored available commands for potential exploits,",
+        "Reasoning": "To find any custom commands that could be leveraged,",
+        "Result": "Found a `/server_provision` command that allows provisioning a server."
+    },
+    {
+        "Findings": "The `/server_provision` command opens a dialog for server details,",
+        "Action": "Filled out the form with my IP and started a listener,",
+        "Reasoning": "To capture any SSH connection attempts from the provisioning process,",
+        "Result": "Established a connection from the target server."
+    },
+    {
+        "Findings": "The target user `cbrown` is attempting to SSH into the server,",
+        "Action": "Created a custom SSH honeypot to capture credentials,",
+        "Reasoning": "To obtain the SSH credentials for further access,",
+        "Result": "Captured the username `cbrown` and password `sn00pedcr3dential!!!`."
+    },
+    {
+        "Findings": "Gained SSH access as `cbrown`,",
+        "Action": "Logged into the server,",
+        "Reasoning": "To explore further and escalate privileges,",
+        "Result": "Accessed the `cbrown` user shell."
+    },
+    {
+        "Findings": "The `cbrown` home directory is empty,",
+        "Action": "Checked for other users' home directories,",
+        "Reasoning": "To find any files or configurations that could be useful,",
+        "Result": "Discovered the `sbrown` home directory but could not access it."
+    },
+    {
+        "Findings": "`cbrown` can run `git apply -v` as `sbrown` with specific regex,",
+        "Action": "Investigated the possibility of exploiting `git apply` for privilege escalation,",
+        "Reasoning": "To leverage the vulnerability in Git to gain access to sensitive files,",
+        "Result": "Identified CVE-2023-23946 as a potential exploit."
+    },
+    {
+        "Findings": "The target's Git version is vulnerable to CVE-2023-23946,",
+        "Action": "Planned to create a malicious patch to exploit the vulnerability,",
+        "Reasoning": "To gain unauthorized access to files outside the Git repository,",
+        "Result": "Prepared to execute the exploit for privilege escalation."
+    },
+    {
+        "Findings": "User `cbrown` can run `git apply -v` as `sbrown` with specific regex restrictions,",
+        "Action": "Checked `sudo -l` for `cbrown`,",
+        "Reasoning": "To understand what commands `cbrown` can run with elevated privileges,",
+        "Result": "Found that `cbrown` can run `git apply -v` as `sbrown` with regex restrictions."
+    },
+    {
+        "Findings": "No Git repositories are visible to `cbrown`,",
+        "Action": "Ran `find . -name .git` to search for Git repositories,",
+        "Reasoning": "To check if there are any repositories where patches could be applied,",
+        "Result": "No repositories found."
+    },
+    {
+        "Findings": "Git version is 2.34.1, which is vulnerable to CVE-2023-23946,",
+        "Action": "Searched for vulnerabilities related to `git apply`,",
+        "Reasoning": "To identify potential exploits that could be leveraged,",
+        "Result": "Found CVE-2023-23946, which allows for arbitrary file writes through symlink manipulation."
+    },
+    {
+        "Findings": "The vulnerability allows creating a symbolic link to write files outside the repository,",
+        "Action": "Analyzed the patch format for `git apply`,",
+        "Reasoning": "To understand how to craft a malicious patch that exploits the vulnerability,",
+        "Result": "Identified the structure of a patch file."
+    },
+    {
+        "Findings": "Set global Git configuration for user details,",
+        "Action": "Executed `git config --global` commands,",
+        "Reasoning": "To prevent Git from throwing errors when creating a repository,",
+        "Result": "Configured Git with user name and email."
+    },
+    {
+        "Findings": "Created a Git repository in `/dev/shm/poc`,",
+        "Action": "Ran `git init` in a new directory,",
+        "Reasoning": "To create a test environment for the exploit,",
+        "Result": "Initialized an empty Git repository."
+    },
+    {
+        "Findings": "Created a symlink pointing to `/home/cbrown/`,",
+        "Action": "Used `ln -s` to create a symlink,",
+        "Reasoning": "To prepare for the patch that will exploit the vulnerability,",
+        "Result": "Symlink created successfully."
+    },
+    {
+        "Findings": "Created a patch file to test the exploit,",
+        "Action": "Crafted a patch file with a new file path,",
+        "Reasoning": "To test if the patch can create a file outside the repository,",
+        "Result": "Successfully created a file in `/home/cbrown/`."
+    },
+    {
+        "Findings": "Attempted to overwrite `sbrown`'s `authorized_keys` file,",
+        "Action": "Created a new Git repository with a symlink to `sbrown`'s `.ssh` directory,",
+        "Reasoning": "To test if the exploit can be used to gain access to `sbrown`'s account,",
+        "Result": "Encountered permission errors when applying the patch."
+    },
+    {
+        "Findings": "`sbrown` does not have permission to unlink the symlink,",
+        "Action": "Changed permissions on the directory to allow all users to write,",
+        "Reasoning": "To bypass the permission issue preventing the patch application,",
+        "Result": "Successfully applied the patch and wrote to `authorized_keys`."
+    },
+    {
+        "Findings": "SSH key was successfully added to `sbrown`'s `authorized_keys`,",
+        "Action": "Used `ssh` to connect as `sbrown`,",
+        "Reasoning": "To gain access to the system as `sbrown`,",
+        "Result": "Successfully logged in as `sbrown`."
+    },
+    {
+        "Findings": "`sbrown` can run `clamscan` as root with regex restrictions,",
+        "Action": "Checked `sudo -l` for `sbrown`,",
+        "Reasoning": "To identify potential privilege escalation opportunities,",
+        "Result": "Found that `sbrown` can run `clamscan` with specific arguments as root."
+    },
+    {
+        "Findings": "ClamAV version is 1.0.0, which is vulnerable to CVE-2023-20052,",
+        "Action": "Searched for vulnerabilities related to ClamAV,",
+        "Reasoning": "To identify potential exploits that could be leveraged,",
+        "Result": "Found CVE-2023-20052, which allows for XXE attacks."
+    },
+    {
+        "Findings": "Need to create or find a `.dmg` file,",
+        "Action": "Downloaded a `.dmg` file from the internet,",
+        "Reasoning": "To test the XXE vulnerability in ClamAV,",
+        "Result": "Obtained a `.dmg` file for testing."
+    },
+    {
+        "Findings": "Identified XML structure in the `.dmg` file,",
+        "Action": "Ran `strings` on the file to extract XML,",
+        "Reasoning": "To understand how the XML is structured for potential exploitation,",
+        "Result": "Extracted XML containing keys `blkx` and `plist`."
+    },
+    {
+        "Findings": "Uploaded the `.dmg` file to the `scanfiles` directory,",
+        "Action": "Used `wget` to download the file,",
+        "Reasoning": "To prepare the file for scanning with ClamAV,",
+        "Result": "Successfully downloaded the file."
+    },
+    {
+        "Findings": "Scanned the `.dmg` file with ClamAV,",
+        "Action": "Ran `clamscan --debug` on the file,",
+        "Reasoning": "To analyze the output for potential vulnerabilities,",
+        "Result": "Found debug output indicating the parser matched certain keys."
+    },
+    {
+        "Findings": "Modified the `.dmg` file to include an XXE payload,",
+        "Action": "Edited the XML in a hex editor,",
+        "Reasoning": "To create a payload that would exploit the XXE vulnerability,",
+        "Result": "Successfully modified the `.dmg` file."
+    },
+    {
+        "Findings": "Uploaded the modified `.dmg` file and scanned it again,",
+        "Action": "Ran `clamscan` on the modified file,",
+        "Reasoning": "To see if the XXE payload would be executed,",
+        "Result": "Retrieved sensitive data (private key) from the output."
+    },
+    {
+        "Findings": "The file `notepad.dmg` was downloaded successfully,",
+        "Action": "Scanning the file using ClamAV with `sudo clamscan --debug /home/sbrown/scanfiles/notepad.dmg`,",
+        "Reasoning": "To check for any potential threats or vulnerabilities within the DMG file,",
+        "Result": "The scan output indicated the presence of the `blkx` field and the `plst` key in the XML structure."
+    },
+    {
+        "Findings": "The XML structure of the DMG file contains a `plst` key,",
+        "Action": "Modifying the DMG file to include an XXE payload that references `/root/.ssh/id_rsa`,",
+        "Reasoning": "To exploit the XXE vulnerability and extract sensitive information from the target system,",
+        "Result": "The modified DMG file was created and uploaded for scanning."
+    },
+    {
+        "Findings": "The modified DMG file was uploaded,",
+        "Action": "Running ClamAV scan on the modified DMG file with `sudo clamscan --debug /home/sbrown/scanfiles/exploit.dmg`,",
+        "Reasoning": "To verify if the XXE payload successfully extracted the private key,",
+        "Result": "The scan output revealed the private key content, confirming the successful exploitation."
+    },
+    {
+        "Findings": "The private key for root was obtained,",
+        "Action": "Using the private key to SSH into the target system as root,",
+        "Reasoning": "To gain elevated privileges and access sensitive files,",
+        "Result": "Successfully logged into the target system as root."
+    },
+    {
+        "Findings": "The user `cbrown` had sudo privileges to run `git apply` with `PASSWD`,",
+        "Action": "Creating a diff file to add an SSH key to `sbrown`'s `authorized_keys`,",
+        "Reasoning": "To escalate privileges from `cbrown` to `sbrown` without needing a password,",
+        "Result": "The diff was applied successfully, allowing SSH access as `sbrown`."
+    },
+    {
+        "Findings": "The user `sbrown` had sudo privileges to run `clamscan` with `NOPASSWD`,",
+        "Action": "Exploring the `-f` option of `clamscan` to read files,",
+        "Reasoning": "To check if it could read sensitive files like `root.txt` and `/root/.ssh/id_rsa`,",
+        "Result": "The scan attempted to read the files and printed their contents in the error messages, revealing sensitive information."
+    },
+    {
+        "Findings": "The error messages from `clamscan` contained sensitive data,",
+        "Action": "Using `grep` and `cut` to isolate and print the private key from the error output,",
+        "Reasoning": "To extract the private key cleanly from the verbose error messages,",
+        "Result": "Successfully retrieved the private key from the output."
+    }
+]

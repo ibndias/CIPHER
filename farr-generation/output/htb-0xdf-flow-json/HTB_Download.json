@@ -1,0 +1,284 @@
+[
+    {
+        "Findings": "The target is running Ubuntu 20.04 with OpenSSH 8.2p1 and nginx 1.18.0,",
+        "Action": "Conducted an nmap scan with `nmap -p- --min-rate 10000 10.10.11.226`,",
+        "Reasoning": "To identify open ports and services running on the target,",
+        "Result": "Found open ports 22 (SSH) and 80 (HTTP)."
+    },
+    {
+        "Findings": "The HTTP service redirects to `",
+        "Action": "Added `download.htb` to `/etc/hosts`,",
+        "Reasoning": "To access the web application directly,",
+        "Result": "Accessed the file sharing service at `download.htb`."
+    },
+    {
+        "Findings": "The web application has an upload feature and a login page,",
+        "Action": "Explored the upload functionality,",
+        "Reasoning": "To understand how files are handled and if there are any vulnerabilities,",
+        "Result": "Successfully uploaded a file and received a unique GUID for the file."
+    },
+    {
+        "Findings": "The application uses ExpressJS and sets cookies for session management,",
+        "Action": "Analyzed the cookies set by the application,",
+        "Reasoning": "To understand how session management works and if it can be exploited,",
+        "Result": "Identified the `download_session` and `download_session.sig` cookies."
+    },
+    {
+        "Findings": "The `download_session` cookie contains user information and is base64 encoded,",
+        "Action": "Decoded the cookie to inspect its contents,",
+        "Reasoning": "To see if I could manipulate the session data,",
+        "Result": "Found user ID and username in the decoded cookie."
+    },
+    {
+        "Findings": "The application allows file deletion and marking files as private,",
+        "Action": "Attempted to brute force usernames,",
+        "Reasoning": "To gain access to other user accounts,",
+        "Result": "No valid usernames found through brute force."
+    },
+    {
+        "Findings": "The application has a custom 404 page,",
+        "Action": "Tested for SQL injection by adding a `'` to file IDs,",
+        "Reasoning": "To check if the application is vulnerable to SQL injection,",
+        "Result": "Received a generic error message indicating something went wrong."
+    },
+    {
+        "Findings": "The application uses Prisma for database interactions,",
+        "Action": "Analyzed the `package.json` file for dependencies,",
+        "Reasoning": "To identify potential vulnerabilities or misconfigurations,",
+        "Result": "Confirmed the use of Prisma and other libraries."
+    },
+    {
+        "Findings": "The application has a file read vulnerability,",
+        "Action": "Explored the `/files/download` endpoint with URL-encoded slashes,",
+        "Reasoning": "To check if I could read files from the filesystem,",
+        "Result": "Successfully accessed the `uploads` directory and read the `package.json` file."
+    },
+    {
+        "Findings": "The application uses SHA1 HMAC for cookie signing,",
+        "Action": "Investigated the `cookie-session` package to understand cookie signing,",
+        "Reasoning": "To forge a valid session cookie,",
+        "Result": "Gained knowledge on how to recreate the signature for the `download_session` cookie."
+    },
+    {
+        "Findings": "The application executes raw SQL queries to generate usage statistics,",
+        "Action": "Analyzed the `app.js` file for SQL execution,",
+        "Reasoning": "To understand potential attack vectors,",
+        "Result": "Identified a potential SQL injection point in the application."
+    },
+    {
+        "Findings": "`cookie_session_1` is defined at the top of the code,",
+        "Action": "imported the `cookie-session` package,",
+        "Reasoning": "to manage session cookies in the application,",
+        "Result": "the application can use session cookies for user authentication and state management."
+    },
+    {
+        "Findings": "The `cookie-session` package is available on npm and GitHub,",
+        "Action": "explored the package documentation,",
+        "Reasoning": "to understand how the package works and its features,",
+        "Result": "confirmed that it uses signed cookies for session management."
+    },
+    {
+        "Findings": "The `Cookies` object is created using the `cookies` package,",
+        "Action": "examined the `Cookies` class in the `cookies` package,",
+        "Reasoning": "to understand how cookies are handled and signed,",
+        "Result": "learned that it uses SHA1 HMAC for signing cookies."
+    },
+    {
+        "Findings": "The initial cookie value is `download_session=eyJmbGFzaGVzIjp7ImluZm8iOltdLCJlcnJvciI6W10sInN1Y2Nlc3MiOltdfX0=`,",
+        "Action": "attempted to recreate the signature,",
+        "Reasoning": "to verify the integrity of the cookie and understand the signing process,",
+        "Result": "discovered that the signature includes the cookie name and value."
+    },
+    {
+        "Findings": "The application uses the `user` object from the cookie to query files,",
+        "Action": "analyzed the query logic in `home.js`,",
+        "Reasoning": "to identify potential vulnerabilities in how user data is handled,",
+        "Result": "confirmed that the application trusts the cookie data for querying."
+    },
+    {
+        "Findings": "Modified the `user` object in the cookie to be empty,",
+        "Action": "crafted a new cookie with an empty user object,",
+        "Reasoning": "to test if it would return all files without filtering,",
+        "Result": "successfully retrieved all files from different users."
+    },
+    {
+        "Findings": "The application crashes when using an invalid column name in the query,",
+        "Action": "tested various column names to identify the password field,",
+        "Reasoning": "to find the correct field for further exploitation,",
+        "Result": "confirmed that the password field is named `password`."
+    },
+    {
+        "Findings": "The application allows filtering by password using `startsWith`,",
+        "Action": "crafted queries to brute force the password character by character,",
+        "Reasoning": "to gain access to user accounts by discovering their passwords,",
+        "Result": "successfully brute-forced the password for the user `wesley`."
+    },
+    {
+        "Findings": "The password for `wesley` is `dunkindonuts`,",
+        "Action": "used `hashcat` to crack the password hash,",
+        "Reasoning": "to gain access to the user account,",
+        "Result": "successfully logged into the `wesley` account via SSH."
+    },
+    {
+        "Findings": "The `download` database connection string is found in the service configuration,",
+        "Action": "accessed the PostgreSQL database using the credentials,",
+        "Reasoning": "to explore the database for sensitive information,",
+        "Result": "connected to the database and listed its tables."
+    },
+    {
+        "Findings": "The `download` database contains three tables,",
+        "Action": "examined the tables for sensitive data,",
+        "Reasoning": "to identify any exploitable information,",
+        "Result": "discovered the `User` and `File` tables for further investigation."
+    },
+    {
+        "Findings": "The application requires double quotes to interact with tables,",
+        "Action": "attempted to query the `User` table,",
+        "Reasoning": "to extract user information,",
+        "Result": "successfully queried the `User` table after using the correct syntax."
+    },
+    {
+        "Findings": "The connection string for the database is stored in an environment variable,",
+        "Action": "Analyzed the `download-site.service` file,",
+        "Reasoning": "To understand how the NodeJS application connects to the PostgreSQL database,",
+        "Result": "Confirmed the database URL and credentials used for connection."
+    },
+    {
+        "Findings": "The password \u201cCoconutPineappleWatermelon\u201d works to connect to the PostgreSQL database,",
+        "Action": "Connected to the database using `psql`,",
+        "Reasoning": "To verify access to the database with the provided credentials,",
+        "Result": "Successfully logged into the `download` database."
+    },
+    {
+        "Findings": "There are four databases in PostgreSQL,",
+        "Action": "Executed the `\\list` command in `psql`,",
+        "Reasoning": "To enumerate the databases available in the PostgreSQL instance,",
+        "Result": "Listed the"
+    },
+    {
+        "Findings": "The current database `download` has three tables,",
+        "Action": "Executed the `\\dt` command in `psql`,",
+        "Reasoning": "To identify the tables present in the `download` database,",
+        "Result": "Listed the"
+    },
+    {
+        "Findings": "To interact with the `File` table, double quotes are required,",
+        "Action": "Attempted to select from `File` without quotes,",
+        "Reasoning": "To understand the case sensitivity of table names in PostgreSQL,",
+        "Result": "Received an error indicating that the relation \"file\" does not exist."
+    },
+    {
+        "Findings": "A Python script `management.py` is running as a service,",
+        "Action": "Checked running processes with `ps auxww`,",
+        "Reasoning": "To identify any potentially malicious or automated scripts running on the server,",
+        "Result": "Found `management.py` running as root."
+    },
+    {
+        "Findings": "The `management.service` file is only readable by root,",
+        "Action": "Attempted to read the service file,",
+        "Reasoning": "To understand what the script does,",
+        "Result": "Received a permission denied error."
+    },
+    {
+        "Findings": "The `pspy` tool shows a series of processes triggered by SSH connections from root,",
+        "Action": "Monitored processes with `pspy`,",
+        "Reasoning": "To identify any recurring jobs or automated tasks,",
+        "Result": "Observed SSH connections and subsequent commands executed by root."
+    },
+    {
+        "Findings": "The `manage-db` script is executed multiple times,",
+        "Action": "Noted the command executions in `pspy` logs,",
+        "Reasoning": "To understand the automation flow and its impact,",
+        "Result": "Confirmed that `manage-db` is called after SSH connections."
+    },
+    {
+        "Findings": "The `su -l postgres` command is executed,",
+        "Action": "Analyzed the command flow in `pspy`,",
+        "Reasoning": "To determine how the script interacts with the PostgreSQL user,",
+        "Result": "Observed that it drops to the `postgres` user and runs several commands."
+    },
+    {
+        "Findings": "The TTY pushback vulnerability allows for command injection during user switching,",
+        "Action": "Researched TTY pushback and its implications,",
+        "Reasoning": "To understand how an attacker could exploit user privilege escalation,",
+        "Result": "Gained insight into the potential for executing commands as a higher privileged user."
+    },
+    {
+        "Findings": "The `.profile` file can be poisoned to execute commands,",
+        "Action": "Created a Python script to exploit TTY pushback,",
+        "Reasoning": "To demonstrate how to gain root access through user switching,",
+        "Result": "Developed a script that would execute commands as root when the `postgres` user logs in."
+    },
+    {
+        "Findings": "Unable to write directly to the `postgres` user's home directory,",
+        "Action": "Attempted to echo commands into `.profile`,",
+        "Reasoning": "To set up the environment for the TTY pushback exploit,",
+        "Result": "Received a permission denied error."
+    },
+    {
+        "Findings": "The `COPY` command in PostgreSQL can write to files,",
+        "Action": "Used the `COPY` command to write to `/var/lib/postgresql/.profile`,",
+        "Reasoning": "To bypass permission restrictions and set up the exploit,",
+        "Result": "Successfully wrote the command to the `.profile` file."
+    },
+    {
+        "Findings": "The bot cycles every 60 seconds,",
+        "Action": "Monitored the execution of `management.py`,",
+        "Reasoning": "To time the execution of the exploit correctly,",
+        "Result": "Confirmed the timing of the bot's operations."
+    },
+    {
+        "Findings": "The exploit script was executed successfully,",
+        "Action": "Waited for the bot to trigger the `.profile` execution,",
+        "Reasoning": "To gain root access through the TTY pushback,",
+        "Result": "Obtained a shell with root privileges."
+    },
+    {
+        "Findings": "The `management.py` script contains the root password,",
+        "Action": "Analyzed the script's content,",
+        "Reasoning": "To understand how the automation works and what credentials are used,",
+        "Result": "Retrieved the root password for further access."
+    },
+    {
+        "Findings": "The file read vulnerability in the web application,",
+        "Action": "Reviewed the code in `/var/www/app/routers/files.js`,",
+        "Reasoning": "To identify potential security flaws in the application,",
+        "Result": "Discovered that file access is controlled based on user permissions and session data."
+    },
+    {
+        "Findings": "The SSHD process starts `bash` as root,",
+        "Action": "Run `su - wesley`,",
+        "Reasoning": "To switch to the user `wesley` while executing as root,",
+        "Result": "A new `bash` process (19323) starts as `wesley` in the same pseudo-terminal (pts/0)."
+    },
+    {
+        "Findings": "The `su -P wesley` command is executed,",
+        "Action": "Run `su -P wesley`,",
+        "Reasoning": "To switch to the user `wesley` while preserving the current environment and using a new pseudo-terminal,",
+        "Result": "A new `bash` process (20015) starts as `wesley` in a different pseudo-terminal (pts/2)."
+    },
+    {
+        "Findings": "The file read vulnerability in the Express route,",
+        "Action": "Analyze the code in `/var/www/app/routers/files.js`,",
+        "Reasoning": "To understand how file access is controlled based on user permissions,",
+        "Result": "Identified that the check for `fileEntry?.private` does not properly handle the case where `fileEntry` is undefined."
+    },
+    {
+        "Findings": "The use of the Optional Chaining operator (`?.`) in the code,",
+        "Action": "Review the logic of the conditional check,",
+        "Reasoning": "To determine if it correctly restricts access to private files,",
+        "Result": "Discovered that if `fileEntry` does not exist, it allows access instead of returning a 404."
+    },
+    {
+        "Findings": "The response handling in the Express route,",
+        "Action": "Examine the `res.download` method,",
+        "Reasoning": "To see how the file is served to the user,",
+        "Result": "Confirmed that it uses the path library to join the uploads directory with the file ID and returns the file, potentially exposing it if the checks fail."
+    },
+    {
+        "Findings": "The filename returned when `fileEntry?.name` is false,",
+        "Action": "Analyze the default filename behavior,",
+        "Reasoning": "To understand what happens when the file name is not found,",
+        "Result": "The response defaults to \"Unknown\" as the filename, which could mislead users."
+    }
+]
