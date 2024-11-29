@@ -12,9 +12,9 @@ We believed that experience is the best teacher, and penetration testing can not
 # Quick Start
 
 ## 1. Clone the repository:
-    ```sh
-    git clone https://github.com/ibndias/CIPHER.git
-    ```
+```sh
+git clone https://github.com/ibndias/CIPHER.git
+```
 ## 2. Generate FARR Flow
 
 We have two vulnerable machine writeups example from 0xdf blogs [HTB Aero](https://0xdf.gitlab.io/2023/09/28/htb-aero.html) and [HTB Analytics](https://0xdf.gitlab.io/2024/03/23/htb-analytics.html). Both are already available inside `/farr-generation/source/htb-0xdf-small` directory in markdown format. 
@@ -39,16 +39,16 @@ Go to evaluation directory:
 cd ../farr-evaluation
 ```
 Generate the `gpt-3.5-turbo` response:
-```
+```sh
 python farr-eval.py --test-model gpt-3.5-turbo --mode response --flow-dir ../farr-generation/output/htb-0xdf-small-flow-foothold --output-dir ./output-response-small
 ```
 Evaluate the `gpt-3.5-turbo` response with `gpt-4o-mini` model based on `service` criteria:
-```
+```sh
 python farr-eval.py --test-model gpt-3.5-turbo --mode eval --eval-model gpt-4o-mini --flow-dir ../farr-generation/output/htb-0xdf-small-flow-foothold --response-dir ./output-response-small --output-dir ./output-eval-small-service --criteria service
 ```
 Get the average score:
 
-```
+```sh
 python scoring.py ./output-eval-small-service 
 ```
 
@@ -130,7 +130,7 @@ It will results in three directory containing different format.
 - `./output/htb-0xdf-flow-json` will contains the parsed FARR Flow.
 - `./output/htb-0xdf-flow-json-foothold` contains the FARR Flow with added foothold and root keys, which informing the step where the foothold and root is obtained. This is useful for FARR Flow evaluation in the future to measure how much foothold and root obtained.
 
-## 2. FARR Flow Evaluation
+## FARR Flow Evaluation
 
 FARR Flow evaluates the response from the model based on the current findings. It uses open-ended question formulated from FARR steps, asking for the next correct action to be taken.
 
