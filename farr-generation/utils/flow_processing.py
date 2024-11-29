@@ -32,6 +32,29 @@ BEGIN!"""
         actions.append(resp)
     return actions
 
+# def parse_flow(text):
+#     """
+#     Parses structured findings text into JSON.
+
+#     Args:
+#         text (str): The input text containing structured findings.
+
+#     Returns:
+#         list: A list of dictionaries with keys Findings, Action, Reasoning, and Result.
+#     """
+#     def parse_entry(entry):
+#         fields = ["Findings", "Action", "Reasoning", "Result"]
+#         pattern = r"(" + "|".join(fields) + r"): (.*?)(?=\s*\w+:|$)"
+#         matches = re.findall(pattern, entry, re.DOTALL)
+#         return {key: value.strip() for key, value in matches}
+
+#     # Split the text based on '* Findings:' markers
+#     entries = re.split(r"\* (?=Findings:)", text.strip())
+#     entries = [entry.strip() for entry in entries if entry.strip()]  # Clean up empty entries
+
+#     # Parse each entry and return the result as a JSON-like structure
+#     return [parse_entry(entry) for entry in entries]
+
 def parse_flow(text):
     """
     Parses structured findings text into JSON.
@@ -44,7 +67,8 @@ def parse_flow(text):
     """
     def parse_entry(entry):
         fields = ["Findings", "Action", "Reasoning", "Result"]
-        pattern = r"(" + "|".join(fields) + r"): (.*?)(?=\s*\w+:|$)"
+        # Ensure multiline support for field extraction
+        pattern = r"(" + "|".join(fields) + r"):((?:.*?(?=\s*(?:Findings|Action|Reasoning|Result):|$)))"
         matches = re.findall(pattern, entry, re.DOTALL)
         return {key: value.strip() for key, value in matches}
 
@@ -54,6 +78,8 @@ def parse_flow(text):
 
     # Parse each entry and return the result as a JSON-like structure
     return [parse_entry(entry) for entry in entries]
+
+
 
 def parse_flow_folder(input_folder, output_folder):
     """
