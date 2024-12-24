@@ -75,6 +75,9 @@ def parse_flow(text):
     # Split the text based on '* Findings:' markers
     entries = re.split(r"\* (?=Findings:)", text.strip())
     entries = [entry.strip() for entry in entries if entry.strip()]  # Clean up empty entries
+    
+    # If entry does not contain one of the fields, remove it
+    entries = [entry for entry in entries if all(field in entry for field in ["Findings", "Action", "Reasoning", "Result"])]
 
     # Parse each entry and return the result as a JSON-like structure
     return [parse_entry(entry) for entry in entries]
