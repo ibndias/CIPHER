@@ -28,6 +28,14 @@ python farr-gen.py full ./source/htb-0xdf-small ./output/htb-0xdf-small-flow
 
 Now the FARR Flows is generated and saved in `./output/htb-0xdf-small-flow-foothold`.
 
+By default it will use gpt-4o-mini, if you would like to change the generator into custom model, just point the base url for OpenAI compatible API and pass the model name like this:
+
+```
+python farr-gen.py full ./source/htb-0xdf-small ./output/htb-0xdf-small-flow --api-base http://10.125.121.102:1330/v1 --model-chosen meta-llama/Llama-3.3-70B-Instruct
+```
+
+Any OpenAI compatible endpoint are supported.
+
 ## 3. Evaluate the model
 
 Once we have the FARR Flows, we can start evaluating our model. For this example, we will evaluate `gpt-3.5-turbo` performance on [HTB Aero](https://0xdf.gitlab.io/2023/09/28/htb-aero.html) and [HTB Analytics](https://0xdf.gitlab.io/2024/03/23/htb-analytics.html) vulnerable machines with `gpt-4o-mini` as evaluator.
